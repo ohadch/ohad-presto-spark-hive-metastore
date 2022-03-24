@@ -1,0 +1,71 @@
+version: '2'
+
+services:
+  spark:
+    build: spark
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+      - ./spark/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
+      - ./third-party/hive-metastore-3.1.2.jar:/opt/bitnami/spark/jars/hive-metastore-3.1.2.jar
+      - ./third-party/postgresql-42.3.3.jar:/opt/bitnami/spark/jars/postgresql-42.3.3.jar
+    ports:
+      - "7077:7077"
+      - '8081:8080'
+
+  spark-worker:
+    build: spark
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+      - ./spark/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
+      - ./third-party/hive-metastore-3.1.2.jar:/opt/bitnami/spark/jars/hive-metastore-3.1.2.jar
+      - ./third-party/postgresql-42.3.3.jar:/opt/bitnami/spark/jars/postgresql-42.3.3.jar
+
+  db:
+    image: postgres:10
+    environment:
+      - POSTGRES_USER=hive
+      - POSTGRES_PASSWORD=hive
+      - POSTGRES_DB=metastore
+    ports:
+      - "5434:5432"
+
+  hive-metastore:
+    build: hive
+    image: hive-metastore:latest
+    ports:
+    - "9083:9083"
+    depends_on:
+      - db
+
+  presto-coordinator:
+    image: ahanaio/prestodb-sandbox
+    ports:
+    - "8082:8080"
+    volumes:
+      - ${PWD}/presto/coordinator/etc/config.properties:/opt/presto-serveretc/config.properties
+      - ${PWD}/presto/coordinator/etc/catalog/hive.properties:/opt/presto-server/etc/catalog/hive.properties
+    depends_on:
+      - db
+
+  presto-worker:
+    image: ahanaio/prestodb-sandbox
+    ports:
+    - "8083:8080"
+    volumes:
+      - ./presto/worker/etc/config.properties:/opt/presto-server/etc/config.properties
+
+    depends_on:
+      - db

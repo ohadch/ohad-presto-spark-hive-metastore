@@ -1,0 +1,8 @@
+color,value,number,bool
+red,#f00,0,True
+green,#0f0,1,False
+blue,#00f,2,True
+cyan,#0ff,3,False
+magenta,#f0f,4,True
+yellow,#ff0,5,False
+black,#000,6,True
