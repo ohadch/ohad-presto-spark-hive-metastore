@@ -5,3 +5,4 @@ ipynb_checkpoints/**
 data/
 hive-metastore/metastore
 hive-metastore/postgresql-42.2.16.jar
+hive-metastore/hadoop-3.2.1
