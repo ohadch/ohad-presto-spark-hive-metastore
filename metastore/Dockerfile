@@ -43,7 +43,8 @@ COPY metastore-site.xml /opt/metastore/conf/
 # Hive metastore data folder
 VOLUME ["/user/hive/warehouse"]
 
-# create metastore backend tables and insert data. Replace postgres with mysql if MySQL backend used
-RUN bin/schematool -initSchema -dbType postgres
+COPY ./entrypoint.sh /opt/entrypoint.sh
+RUN ["chmod", "+x", "/opt/entrypoint.sh"]
 
-CMD ["/opt/metastore/bin/start-metastore"]
+
+ENTRYPOINT ["/opt/entrypoint.sh"]

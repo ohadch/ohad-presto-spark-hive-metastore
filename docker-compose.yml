@@ -25,18 +25,30 @@ services:
       timeout: 5s
       retries: 10
 
-  metastore-db:
-    image: postgres:10
+  db:
+    image: postgres:14-alpine
+    user: postgres
     environment:
+      - POSTGRES_DB=metastore
       - POSTGRES_USER=hive
       - POSTGRES_PASSWORD=hive
-      - POSTGRES_DB=metastore
     ports:
       - "5437:5432"
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   metastore:
     build: metastore
-
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+        - "9083:9083"
 
 #  spark:
 #    build: spark
@@ -78,14 +90,6 @@ services:
 #      - POSTGRES_DB=metastore
 #    ports:
 #      - "5434:5432"
-#
-#  hive-metastore:
-#    build: hive
-#    image: hive-metastore:latest
-#    ports:
-#    - "9083:9083"
-#    depends_on:
-#      - db
 #
 #  presto-coordinator:
 #    image: ahanaio/prestodb-sandbox
@@ -179,8 +183,3 @@ services:
 #        # and https://github.com/amundsen-io/amundsenfrontendlibrary/blob/master/docs/configuration.md#authentication
 #        - FRONTEND_SVC_CONFIG_MODULE_CLASS=amundsen_application.config.TestConfig
 #      command: gunicorn -w 2 --bind :5000 amundsen_application.wsgi
-
-
-volumes:
-  es_data:
-  neo4j_data:

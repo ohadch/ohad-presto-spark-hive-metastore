@@ -23,7 +23,7 @@
     </property>
     <property>
         <name>javax.jdo.option.ConnectionURL</name>
-        <value>jdbc:postgresql://metastore-db:5432/metastore?allowPublicKeyRetrieval=true&amp;useSSL=false&amp;serverTimezone=UTC</value>
+        <value>jdbc:postgresql://db:5432/metastore?allowPublicKeyRetrieval=true&amp;useSSL=false&amp;serverTimezone=UTC</value>
     </property>
     <property>
         <name>javax.jdo.option.ConnectionDriverName</name>
