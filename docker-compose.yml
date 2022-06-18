@@ -34,6 +34,10 @@ services:
     ports:
       - "5437:5432"
 
+  metastore:
+    build: metastore
+
+
 #  spark:
 #    build: spark
 #    environment:

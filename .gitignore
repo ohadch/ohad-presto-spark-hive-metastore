@@ -3,6 +3,7 @@ local_settings.py
 metastore_db/**
 ipynb_checkpoints/**
 data/
-hive-metastore/metastore
-hive-metastore/postgresql-42.2.16.jar
-hive-metastore/hadoop-3.2.1
+metastore/metastore
+metastore/postgresql-42.2.16.jar
+metastore/hadoop-3.2.1
+metastore/ca.pem
