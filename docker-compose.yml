@@ -25,6 +25,15 @@ services:
       timeout: 5s
       retries: 10
 
+  metastore-db:
+    image: postgres:10
+    environment:
+      - POSTGRES_USER=hive
+      - POSTGRES_PASSWORD=hive
+      - POSTGRES_DB=metastore
+    ports:
+      - "5437:5432"
+
 #  spark:
 #    build: spark
 #    environment:
