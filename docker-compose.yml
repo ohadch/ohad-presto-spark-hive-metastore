@@ -1,71 +1,173 @@
-version: '2'
+version: '3.9'
 
 services:
-  spark:
-    build: spark
+  localstack:
+    image: localstack/localstack:latest
     environment:
-      - SPARK_MODE=master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
+      - AWS_DEFAULT_REGION=us-east-1
+      - EDGE_PORT=4566
+      - SERVICES=s3
+    ports:
+      - '4566-4583:4566-4583'
+      - '8055:8080'
     volumes:
-      - ./spark/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
-      - ./third-party/hive-metastore-3.1.2.jar:/opt/bitnami/spark/jars/hive-metastore-3.1.2.jar
-      - ./third-party/postgresql-42.3.3.jar:/opt/bitnami/spark/jars/postgresql-42.3.3.jar
-    ports:
-      - "7077:7077"
-      - '8081:8080'
+      - "${TEMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test:
+        [
+            "CMD",
+            "node",
+            "-e",
+            "http.request({host: 'localhost', port: '4566'}).end()"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
-  spark-worker:
-    build: spark
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark:7077
-      - SPARK_WORKER_MEMORY=1G
-      - SPARK_WORKER_CORES=1
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-    volumes:
-      - ./spark/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
-      - ./third-party/hive-metastore-3.1.2.jar:/opt/bitnami/spark/jars/hive-metastore-3.1.2.jar
-      - ./third-party/postgresql-42.3.3.jar:/opt/bitnami/spark/jars/postgresql-42.3.3.jar
+#  spark:
+#    build: spark
+#    environment:
+#      - SPARK_MODE=master
+#      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+#      - SPARK_RPC_ENCRYPTION_ENABLED=no
+#      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+#      - SPARK_SSL_ENABLED=no
+#    volumes:
+#      - ./spark/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
+#      - ./third-party/hive-metastore-3.1.2.jar:/opt/bitnami/spark/jars/hive-metastore-3.1.2.jar
+#      - ./third-party/postgresql-42.3.3.jar:/opt/bitnami/spark/jars/postgresql-42.3.3.jar
+#    ports:
+#      - "7077:7077"
+#      - '8081:8080'
+#
+#  spark-worker:
+#    build: spark
+#    environment:
+#      - SPARK_MODE=worker
+#      - SPARK_MASTER_URL=spark://spark:7077
+#      - SPARK_WORKER_MEMORY=1G
+#      - SPARK_WORKER_CORES=1
+#      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+#      - SPARK_RPC_ENCRYPTION_ENABLED=no
+#      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+#      - SPARK_SSL_ENABLED=no
+#    volumes:
+#      - ./spark/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
+#      - ./third-party/hive-metastore-3.1.2.jar:/opt/bitnami/spark/jars/hive-metastore-3.1.2.jar
+#      - ./third-party/postgresql-42.3.3.jar:/opt/bitnami/spark/jars/postgresql-42.3.3.jar
+#
+#  db:
+#    image: postgres:10
+#    environment:
+#      - POSTGRES_USER=hive
+#      - POSTGRES_PASSWORD=hive
+#      - POSTGRES_DB=metastore
+#    ports:
+#      - "5434:5432"
+#
+#  hive-metastore:
+#    build: hive
+#    image: hive-metastore:latest
+#    ports:
+#    - "9083:9083"
+#    depends_on:
+#      - db
+#
+#  presto-coordinator:
+#    image: ahanaio/prestodb-sandbox
+#    ports:
+#    - "8082:8080"
+#    volumes:
+#      - ${PWD}/presto/coordinator/etc/config.properties:/opt/presto-serveretc/config.properties
+#      - ${PWD}/presto/coordinator/etc/catalog/hive.properties:/opt/presto-server/etc/catalog/hive.properties
+#    depends_on:
+#      - db
+#
+#  presto-worker:
+#    image: ahanaio/prestodb-sandbox
+#    ports:
+#    - "8083:8080"
+#    volumes:
+#      - ./presto/worker/etc/config.properties:/opt/presto-server/etc/config.properties
+#
+#    depends_on:
+#      - db
+#
+#  neo4j:
+#      image: neo4j:3.5.26
+#      container_name: neo4j_amundsen
+#      environment:
+#        - NEO4J_AUTH=neo4j/test
+#      ulimits:
+#        nofile:
+#          soft: 40000
+#          hard: 40000
+#      ports:
+#          - 7474:7474
+#          - 7687:7687
+#      volumes:
+#          - ./example/docker/neo4j/conf:/var/lib/neo4j/conf
+#          - ./example/docker/neo4j/plugins:/var/lib/neo4j/plugins
+#          - ./example/backup:/backup
+#          - neo4j_data:/data
+#
+#  elasticsearch:
+#      image: elasticsearch:8.0.0
+#      container_name: es_amundsen
+#      ports:
+#          - 9200:9200
+#      volumes:
+#        - es_data:/usr/share/elasticsearch/data
+#      ulimits:
+#        nofile:
+#          soft: 65536
+#          hard: 65536
+#      environment:
+#        - discovery.type=single-node
+#        - xpack.security.enabled=false
+#
+#  amundsensearch:
+#      image: amundsendev/amundsen-search:2.11.1
+#      container_name: amundsensearch
+#      ports:
+#        - 5001:5000
+#      depends_on:
+#        - elasticsearch
+#      environment:
+#        - PROXY_ENDPOINT=es_amundsen
+#      command: gunicorn -w 2 --bind :5000 search_service.search_wsgi
+#
+#  amundsenmetadata:
+#      image: amundsendev/amundsen-metadata:3.9.0
+#      container_name: amundsenmetadata
+#      depends_on:
+#        - neo4j
+#      ports:
+#        - 5002:5000
+#      environment:
+#         - PROXY_HOST=bolt://neo4j_amundsen
+#      command: gunicorn -w 2 --bind :5000 metadata_service.metadata_wsgi
+#
+#  amundsenfrontend:
+#      image: amundsendev/amundsen-frontend:3.12.0
+#      container_name: amundsenfrontend
+#      depends_on:
+#        - amundsenmetadata
+#        - amundsensearch
+#      ports:
+#        - 5000:5000
+#      environment:
+#        - SEARCHSERVICE_BASE=http://amundsensearch:5000
+#        - METADATASERVICE_BASE=http://amundsenmetadata:5000
+#        # Only for easy config-less Quickstart bookmark evalutation. `TestConfig` extends ordinary `LocalConfig` by
+#        # defining `AUTH_USER_METHOD` to a hardcoded dummy user in `amundsen_application.tests.test_utils.get_test_user()`
+#        # See further docs in https://github.com/amundsen-io/amundsenfrontendlibrary/blob/master/docs/configuration.md#flask
+#        # and https://github.com/amundsen-io/amundsenfrontendlibrary/blob/master/docs/configuration.md#authentication
+#        - FRONTEND_SVC_CONFIG_MODULE_CLASS=amundsen_application.config.TestConfig
+#      command: gunicorn -w 2 --bind :5000 amundsen_application.wsgi
 
-  db:
-    image: postgres:10
-    environment:
-      - POSTGRES_USER=hive
-      - POSTGRES_PASSWORD=hive
-      - POSTGRES_DB=metastore
-    ports:
-      - "5434:5432"
 
-  hive-metastore:
-    build: hive
-    image: hive-metastore:latest
-    ports:
-    - "9083:9083"
-    depends_on:
-      - db
-
-  presto-coordinator:
-    image: ahanaio/prestodb-sandbox
-    ports:
-    - "8082:8080"
-    volumes:
-      - ${PWD}/presto/coordinator/etc/config.properties:/opt/presto-serveretc/config.properties
-      - ${PWD}/presto/coordinator/etc/catalog/hive.properties:/opt/presto-server/etc/catalog/hive.properties
-    depends_on:
-      - db
-
-  presto-worker:
-    image: ahanaio/prestodb-sandbox
-    ports:
-    - "8083:8080"
-    volumes:
-      - ./presto/worker/etc/config.properties:/opt/presto-server/etc/config.properties
-
-    depends_on:
-      - db
+volumes:
+  es_data:
+  neo4j_data:

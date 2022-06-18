@@ -63,18 +63,3 @@ def create_showcase_table(db_name: str, table_name: str):
     ).build()
 
     create_hive_table(table)
-
-
-def create_spark_session():
-    spark = (
-        SparkSession
-            .builder
-            .master("spark://localhost:7077")
-            .appName("SparkHiveMetastoreTest")
-            .config("spark.sql.uris", "thrift://localhost:9083")
-            .config("hive.metastore.warehouse.dir", "thrift://localhost:9083")
-            .enableHiveSupport()
-            .getOrCreate()
-    )
-
-    return spark

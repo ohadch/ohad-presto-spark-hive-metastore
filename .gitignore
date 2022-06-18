@@ -2,3 +2,6 @@ local_settings.py
 **/.idea
 metastore_db/**
 ipynb_checkpoints/**
+data/
+hive-metastore/metastore
+hive-metastore/postgresql-42.2.16.jar
