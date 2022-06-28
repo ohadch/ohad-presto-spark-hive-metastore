@@ -74,6 +74,7 @@ services:
     depends_on:
       metastore:
         condition: service_healthy
+
   spark-worker:
     image: docker.io/bitnami/spark:3
     environment:

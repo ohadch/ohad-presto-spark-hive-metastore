@@ -1,0 +1,4 @@
+string_field,int_field,float_field,date_field,timestamp_field,datetime_field,free_text_field,boolean_field,null_field
+a,1,1.1,2020-01-01,2020-01-01,2020-01-01T00:00:00,"Sentence with, comma",True,
+b,2,2.2,2020-01-02,2020-01-02,2020-01-02T00:00:00,Sentence with space,False,
+c,3,3.3,2020-01-03,2020-01-03,2020-01-03T00:00:00,"Sentence with comma, and space",True,

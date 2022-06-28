@@ -1,0 +1,3 @@
+{"string_field":"a","int_field":1,"float_field":1.1,"date_field":"2020-01-01","timestamp_field":"2020-01-01T00:00:00","datetime_field":"2020-01-01T00:00:00","free_text_field":"Sentence with, comma","boolean_field":true,"null_field":null}
+{"string_field":"b","int_field":2,"float_field":2.2,"date_field":"2020-01-02","timestamp_field":"2020-01-02T00:00:00","datetime_field":"2020-01-02T00:00:00","free_text_field":"Sentence with space","boolean_field":false,"null_field":null}
+{"string_field":"c","int_field":3,"float_field":3.3,"date_field":"2020-01-03","timestamp_field":"2020-01-03T00:00:00","datetime_field":"2020-01-03T00:00:00","free_text_field":"Sentence with comma, and space","boolean_field":true,"null_field":null}
