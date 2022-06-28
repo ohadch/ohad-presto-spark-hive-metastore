@@ -49,17 +49,6 @@ services:
         condition: service_healthy
     ports:
         - "9083:9083"
-    healthcheck:
-      test:
-        [
-            "CMD",
-            "node",
-            "-e",
-            "http.request({host: 'localhost', port: '9083'}).end()"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
 
   spark:
     image: docker.io/bitnami/spark:3
@@ -72,8 +61,7 @@ services:
     ports:
       - '8090:8080'
     depends_on:
-      metastore:
-        condition: service_healthy
+      - metastore
 
   spark-worker:
     image: docker.io/bitnami/spark:3

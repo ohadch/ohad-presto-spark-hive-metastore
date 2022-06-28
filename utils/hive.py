@@ -1,20 +1,29 @@
+from logging import getLogger
+from pprint import pformat
 from typing import List
 
 from hive_metastore_client import HiveMetastoreClient
 from hive_metastore_client.builders import DatabaseBuilder, SerDeInfoBuilder, StorageDescriptorBuilder, \
     TableBuilder
-from thrift_files.libraries.thrift_hive_metastore_client.ttypes import StorageDescriptor, FieldSchema
+from thrift_files.libraries.thrift_hive_metastore_client.ttypes import StorageDescriptor, FieldSchema, \
+    AlreadyExistsException
 
 from settings import HIVE_HOST, HIVE_PORT
 from utils.aws import list_s3_files, create_client, read_dataframe_from_s3
 from utils.parsing import get_hive_columns_by_dataframe
 
 
+logger = getLogger(__name__)
+
+
 def create_hive_database(name: str):
-    print(f"Creating Hive database {name}")
+    logger.info(f"Creating Hive database {name}")
     database = DatabaseBuilder(name=name).build()
     with HiveMetastoreClient(HIVE_HOST, HIVE_PORT) as hive_metastore_client:
-        hive_metastore_client.create_database(database)
+        try:
+            hive_metastore_client.create_database(database)
+        except AlreadyExistsException:
+            logger.info(f"Hive database {name} already exists")
 
 
 def get_storage_descriptor_by_bucket_location(bucket_name: str, s3_dir: str):
@@ -34,7 +43,7 @@ def get_storage_descriptor_by_bucket_location(bucket_name: str, s3_dir: str):
     bucket_object = next(location_files_generator)
     remote_file_path = bucket_object["Key"]
     extension = remote_file_path.split(".")[-1]
-    bucket_dir_location_uri = f"s3://{bucket_name}/{s3_dir}"
+    bucket_dir_location_uri = f"s3a://{bucket_name}/{s3_dir}"
 
     # Read the dataframe
     df = read_dataframe_from_s3(
@@ -84,6 +93,9 @@ def create_hive_table(db_name: str, table_name: str, storage_descriptor: Storage
         columns are the same.
     :return: The Hive table.
     """
+    logger.info(f"Creating Hive table {table_name} in database {db_name} pointing to S3 bucket {storage_descriptor.location}, partition keys: {partition_keys}")
+    logger.info(f"Storage descriptor: {pformat(storage_descriptor.__dict__)}")
+
     table = TableBuilder(
         table_name=table_name,
         db_name=db_name,
@@ -109,6 +121,8 @@ def create_hive_table_by_s3_dir(db_name: str, table_name: str, s3_bucket: str, s
         columns are the same.
     :return: The Hive table.
     """
+    logger.info(f"Creating Hive table {table_name} in database {db_name} pointing to S3 bucket {s3_bucket} and directory {s3_dir}, partition keys: {partition_keys}")
+
     storage_descriptor = get_storage_descriptor_by_bucket_location(
         bucket_name=s3_bucket,
         s3_dir=s3_dir,

@@ -3,6 +3,7 @@ from logging import getLogger
 from tempfile import TemporaryDirectory
 
 import boto3
+from botocore.exceptions import ClientError
 
 from settings import AWS_REGION, LOCALSTACK_URL, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 from utils.parsing import read_dataframe_by_file_path
@@ -88,3 +89,17 @@ def read_dataframe_from_s3(s3_client: boto3.client, bucket_name: str, key: str):
         local_file_path = f"{work_dir_name}/{os.path.basename(key)}"
         s3_client.download_file(bucket_name, key, local_file_path)
         return read_dataframe_by_file_path(local_file_path)
+
+
+def determine_if_bucket_exists(s3_client: boto3.client, bucket_name: str):
+    """
+    Determine if a bucket exists
+    @param s3_client: The AWS S3 client to use
+    @param bucket_name: The name of the bucket to use
+    @return: True if the bucket exists, False otherwise
+    """
+    try:
+        s3_client.head_bucket(Bucket=bucket_name)
+        return True
+    except ClientError:
+        return False

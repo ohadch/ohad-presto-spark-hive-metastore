@@ -58,7 +58,7 @@ def read_dataframe_by_file_path(file_path: str) -> pd.DataFrame:
         raise ValueError("File extension not supported.")
 
 
-def get_hive_columns_by_dataframe(df: pd.DataFrame) -> List[Column]:
+def get_hive_columns_by_dataframe(df: pd.DataFrame):
     """
     Returns the Hive columns by the pandas dataframe.
     :param df: The pandas dataframe.

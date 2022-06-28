@@ -1,7 +1,7 @@
 import os
 from logging import getLogger
 
-from utils.aws import upload_file_to_bucket
+from utils.aws import upload_file_to_bucket, create_client, determine_if_bucket_exists
 from utils.hive import create_hive_table_by_s3_dir
 
 UPLOADED_FILE_PATH = os.path.join("data", "test_parquet.parquet")
@@ -17,6 +17,14 @@ def upload_showcase_file(bucket_name: str, bucket_dir: str, local_file_path: str
     :param local_file_path: The path to the local file to upload.
     :return: The bucket name and key of the uploaded file.
     """
+    s3_client = create_client("s3")
+
+    # Create the bucket if it doesn't exist
+    if not determine_if_bucket_exists(s3_client, bucket_name):
+        logger.info(f"Creating S3 bucket {bucket_name}")
+        s3_client.create_bucket(Bucket=bucket_name)
+
+    # Upload the file to S3
     s3_target_key = f"{bucket_dir}/{os.path.basename(local_file_path)}"
     upload_file_to_bucket(
         bucket_name=bucket_name,
@@ -34,6 +42,8 @@ def create_showcase_table(db_name: str, table_name: str, bucket_name: str, bucke
     :param bucket_dir: The path to the S3 directory to use.
     :return: The name of the Hive table created.
     """
+    logger.info(f"Creating showcase table {table_name} in database {db_name}")
+
     return create_hive_table_by_s3_dir(
         db_name=db_name,
         table_name=table_name,
