@@ -81,7 +81,6 @@ dependencies:
   - pycparser=2.21=pyhd3eb1b0_0
   - pygments=2.11.2=pyhd3eb1b0_0
   - pyqt=5.9.2=py37h655552a_2
-  - pyspark=2.4.0=py37_0
   - python=3.7.11=h88f2d9e_0
   - python-dateutil=2.8.2=pyhd3eb1b0_0
   - pytz=2022.1=py37hecd8cb5_0

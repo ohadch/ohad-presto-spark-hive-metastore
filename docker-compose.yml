@@ -62,6 +62,7 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
     ports:
+      - "7077:7077"
       - '8090:8080'
     depends_on:
       - metastore
