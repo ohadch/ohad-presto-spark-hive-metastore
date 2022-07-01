@@ -38,7 +38,7 @@ def upload_file_to_bucket(
     :param key: Key to use for the file in the bucket.
     :return: None.
     """
-    logger.info(f"Uploading file {file_path} to bucket {bucket_name}")
+    logger.info(f"Uploading file {file_path} to key {key} on bucket {bucket_name}")
     client = create_client("s3")
     client.upload_file(file_path, bucket_name, key)
 

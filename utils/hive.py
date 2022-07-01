@@ -1,3 +1,4 @@
+import os
 from logging import getLogger
 from pprint import pformat
 from typing import List
@@ -9,7 +10,8 @@ from thrift_files.libraries.thrift_hive_metastore_client.ttypes import StorageDe
     AlreadyExistsException
 
 from settings import HIVE_HOST, HIVE_PORT
-from utils.aws import list_s3_files, create_client, read_dataframe_from_s3
+from utils.aws import list_s3_files, create_client, read_dataframe_from_s3, upload_file_to_bucket, \
+    determine_if_bucket_exists
 from utils.parsing import get_hive_columns_by_dataframe
 
 
@@ -133,4 +135,54 @@ def create_hive_table_by_s3_dir(db_name: str, table_name: str, s3_bucket: str, s
         table_name=table_name,
         storage_descriptor=storage_descriptor,
         partition_keys=partition_keys
+    )
+
+
+def upload_files_and_register_in_metastore(
+        bucket_name: str,
+        bucket_base_dir: str,
+        metastore_db_name: str,
+        metastore_table_name: str,
+        local_file_paths: List[str]
+):
+    """
+    Upload files to S3 and register them in the metastore.
+    :param bucket_name: The S3 bucket name.
+    :param bucket_base_dir: The S3 base directory.
+    :param metastore_db_name: The metastore database name.
+    :param metastore_table_name: The metastore table name.
+    :param local_file_paths: The local file paths.
+    :return: The Hive table.
+    """
+    logger.info(f"Uploading files to S3 bucket {bucket_name} and registering them in the metastore")
+
+    bucket_dir = os.path.join(bucket_base_dir, metastore_table_name)
+    s3_client = create_client("s3")
+
+    # Create the bucket if it doesn't exist
+    if not determine_if_bucket_exists(s3_client, bucket_name):
+        logger.info(f"Creating S3 bucket {bucket_name}")
+        s3_client.create_bucket(Bucket=bucket_name)
+
+    # Upload the files to S3
+    for idx, local_file_path in enumerate(local_file_paths):
+        logger.info(f"Uploading file {idx+1} of {len(local_file_paths)}: {local_file_path}")
+
+        s3_target_key = f"{bucket_dir}/{os.path.basename(local_file_path)}"
+        upload_file_to_bucket(
+            bucket_name=bucket_name,
+            file_path=local_file_path,
+            key=s3_target_key
+        )
+
+    create_hive_database(
+        name=metastore_db_name
+    )
+
+    return create_hive_table_by_s3_dir(
+        db_name=metastore_db_name,
+        table_name=metastore_table_name,
+        s3_bucket=bucket_name,
+        s3_dir=bucket_dir,
+        partition_keys=[]
     )
