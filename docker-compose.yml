@@ -49,6 +49,9 @@ services:
         condition: service_healthy
     ports:
         - "9083:9083"
+    # Important for certificate: https://stackoverflow.com/questions/59295524/how-to-make-a-docker-container-communicate-with-the-localstack-docker-container
+    links:
+      - localstack
 
   spark:
     image: docker.io/bitnami/spark:3
